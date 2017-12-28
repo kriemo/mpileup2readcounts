@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.org/gatoravi/mpileup2readcounts.svg?branch=master)](https://travis-ci.org/gatoravi/mpileup2readcounts)
-
+[![Build Status](https://travis-ci.org/kriemo/mpileup2readcounts.svg?branch=master)](https://travis-ci.org/kriemo/mpileup2readcounts)
 
 ## Synopsis
 
