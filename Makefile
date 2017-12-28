@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -ggdb -Wall -O2
+CFLAGS = -std=c++0x -ggdb -Wall -O2
 #LIBS = -lz
 MKDIR_P := mkdir -p
 OUT_DIR := bin
