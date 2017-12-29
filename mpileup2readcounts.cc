@@ -2,7 +2,7 @@
     
     Modified by Kent Riemondy
 
-    Copyright (c) 2016, Avinash Ramu
+    Copyright (c) 2016,2017 Avinash Ramu
     Author: Avinash Ramu <aramu@genome.wustl.edu>
     
     Copyright (c) 2017, Kent Riemondy
@@ -92,9 +92,9 @@ class mpileup_line {
         
         void set_depth() {
             pos_depth = acount_pos + ccount_pos + gcount_pos + tcount_pos +
-                        ncount_pos ; 
+                        ncount_pos + pos_inscount + pos_delcount ; 
             neg_depth = acount_neg + ccount_neg + gcount_neg + tcount_neg +
-                        ncount_neg ;
+                        ncount_neg + neg_inscount + neg_delcount ;
         }
         
         //Set the appropriate count for ref nucleotide
@@ -248,7 +248,7 @@ void parse_bases_to_readcounts(mpileup_line& ml1,
             
             //Insertion 
             case '+': 
-                i++; // advance past (+ or -)
+                i++; // advance past + or -
                 while(ml1.bases[i] >= 48 && // A char type of 0 is typecast to 48 as int
                       ml1.bases[i] <= 57) { // a char type of 9 is typecase to 57 as int
                     indelsize_string = indelsize_string + ml1.bases[i];
@@ -268,7 +268,7 @@ void parse_bases_to_readcounts(mpileup_line& ml1,
 
             //Deletion
             case '-':
-                i++; // advance past (+ or -)
+                i++; // advance past + or -
                 while(ml1.bases[i] >= 48 && // A char type of 0 is typecast to 48 as int
                       ml1.bases[i] <= 57) { // a char type of 9 is typecase to 57 as int
                     indelsize_string = indelsize_string + ml1.bases[i];
