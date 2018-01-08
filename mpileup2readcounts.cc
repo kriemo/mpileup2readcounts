@@ -366,7 +366,7 @@ int main(int argc, char* argv[]) {
             return 1 ;
         }
     }
-    cout << min_depth << endl;
+    
     string line;
     mpileup_line::print_header();
     getline(cin, line);
