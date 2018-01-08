@@ -190,7 +190,7 @@ void parse_bases_to_readcounts(mpileup_line& ml1,
 
     pos_previous_dels = neg_previous_dels = pos_previous_ins = neg_previous_ins = 0;
 
-    for(int i = 0; i < ml1.bases.length(); i++) {
+    for(std::string::size_type i = 0; i < ml1.bases.length(); i++) {
         char base = ml1.bases[i];
         string indelsize_string;
         int indelsize_int = 0;
