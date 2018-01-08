@@ -2,33 +2,38 @@
 
 ## Synopsis
 
-Get the readcounts at a locus by piping samtools mpileup output.
-This allows us to be flexible with the version of samtools used.
-This program has been tested on samtools v1.1
+Get the readcounts at a locus in a strand specific manner by piping samtools mpileup output.
+This program has been tested on samtools v1.6
 
 ## Install
-```
-mkdir build
-cd build
-cmake ..
+
+```bash
+git clone git@github.com:kriemo/mpileup2readcounts
+cd mpileup2readcounts
 make
 ```
 
 ## Usage
-```
-samtools mpileup -f ref.fa -l regions.bed alignments.bam | mpileup2readcounts sample1
+```bash
+samtools mpileup \
+  -f ref.fa \
+  -l regions.bed \
+  alignments.bam \
+  | mpileupToReadCounts -
 ```
 
-##Example output
+## Example output
 ```
-chr        pos        depth      ref_base           refcount           altcount           acount     ccount     gcount     tcount     ncount     indelcount         identifier
-1          10205      3          A          3          0          3          0          0          0          0          0          sample1
-1          10206      3          A          3          0          3          0          0          0          0          0          sample1
-1          10207      4          C          4          0          0          4          0          0          0          0          sample1
-1          10208      4          C          4          0          0          4          0          0          0          0          sample1
-1          10209      4          C          4          0          0          4          0          0          0          0          sample1
-1          10210      4          T          4          0          0          0          0          4          0          0          sample1
-1          10211      4          A          4          0          4          0          0          0          0          0          sample1
-1          10212      3          A          3          0          3          0          0          0          0          0          sample1
-1          10213      4          C          4          0          0          4          0          0          0          0          sample1
+chr     pos     strand  depth   ref_base        refcount        acount  ccount  gcount  tcount  ncount  delcount        inscount
+chr1    1393522 +       1       G       1       0       0       1       0       0       0       0
+chr1    1393523 +       1       T       1       0       0       0       1       0       0       0
+chr1    1393524 +       1       G       1       0       0       1       0       0       0       0
+chr1    1393525 +       1       G       1       0       0       1       0       0       0       0
+chr1    1393526 +       1       G       1       0       0       1       0       0       0       0
+chr1    1393527 +       1       T       1       0       0       0       1       0       0       0
+chr1    1393528 +       1       G       1       0       0       1       0       0       0       0
+chr1    1393529 +       1       T       1       0       0       0       1       0       0       0
+chr1    1393530 +       1       C       1       0       1       0       0       0       0       0
+chr1    1393531 +       1       C       1       0       1       0       0       0       0       0
+chr1    1393532 +       1       A       1       1       0       0       0       0       0       0
 ```
