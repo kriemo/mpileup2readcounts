@@ -4,9 +4,9 @@ CFLAGS = -std=c++0x -ggdb -Wall -O2
 MKDIR_P := mkdir -p
 OUT_DIR := bin
 
-all: $(OUT_DIR)/mpileup2readcounts
+all: $(OUT_DIR)/mpileupToReadCounts
 
-$(OUT_DIR)/mpileup2readcounts: mpileup2readcounts.cc
+$(OUT_DIR)/mpileupToReadCounts: mpileup2readcounts.cc
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 clean:
