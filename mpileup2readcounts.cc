@@ -32,12 +32,17 @@ DEALINGS IN THE SOFTWARE.  */
 #include <map>
 #include <cctype>
 #include <algorithm>
+#include <string>
 
 using namespace std;
 
 void usage() {
     std::cerr << "samtools mpileup -f ref.fa -l regions.bed"
-              << " alignments.bam | mpileup2readcounts - "
+              << " alignments.bam | mpileupToReadCounts " << endl
+              << "or" << endl
+              << "samtools mpileup -f ref.fa -l regions.bed"
+              << " alignments.bam | mpileupToReadCounts -d 5 " << endl
+              << "to restrict output to only regions with at least 5 reads"
               << endl;
 }
 
@@ -303,6 +308,7 @@ void parse_bases_to_readcounts(mpileup_line& ml1,
 
 //Split the line into the required fields and parse
 void process_mpileup_line(std::string line, 
+                         int min_depth,
                          int& pos_previous_dels,
                          int& neg_previous_dels,
                          int& pos_previous_ins,
@@ -333,23 +339,34 @@ void process_mpileup_line(std::string line,
                               pos_previous_ins,
                               neg_previous_ins);
    
-    if(ml1.pos_depth > 0) ml1.print_pos();
-    if(ml1.neg_depth > 0) ml1.print_neg();
+    if(ml1.pos_depth >= min_depth) ml1.print_pos();
+    if(ml1.neg_depth >= min_depth) ml1.print_neg();
     
 }
 
 int main(int argc, char* argv[]) {
     
-    if(argc > 1 && string(argv[1]) != "-") {
-        usage() ; 
-        return 1;
-    } 
-    
-    if(argc == 1) {
-        usage() ; 
-        return 1;
+    // only report regions with >= 1 reads by default
+    int min_depth = 1 ;
+
+    if (argc > 1) {
+        std::string arg = argv[1];
+        if ((arg == "-h") || (arg == "--help")) {
+                usage();
+                return 1;
+        } else if (arg == "-d") {
+            if (argc == 3) { 
+                min_depth = stoi(argv[2]); 
+            } else {
+                cerr << "-d requires one argument" << endl;
+                return 1;
+            }
+        } else {
+            usage() ;
+            return 1 ;
+        }
     }
-    
+    cout << min_depth << endl;
     string line;
     mpileup_line::print_header();
     getline(cin, line);
@@ -361,6 +378,7 @@ int main(int argc, char* argv[]) {
         try {
             // store indel count and add to next line
             process_mpileup_line(line, 
+                                 min_depth,
                                  pos_previous_dels,
                                  neg_previous_dels,
                                  pos_previous_ins,
