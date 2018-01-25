@@ -5,7 +5,7 @@
     Copyright (c) 2016,2017 Avinash Ramu
     Author: Avinash Ramu <aramu@genome.wustl.edu>
     
-    Copyright (c) 2017, Kent Riemondy
+    Copyright (c) 2017,2018 Kent Riemondy
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -74,12 +74,14 @@ class mpileup_line {
         int depth;
         string bases;
         string qual;
+        
         //Counts for different bases
         int refcountneg, refcountpos;
         int pos_depth, neg_depth ; 
         int acount_pos, ccount_pos, gcount_pos, tcount_pos, ncount_pos;
         int acount_neg, ccount_neg, gcount_neg, tcount_neg, ncount_neg;
         int pos_delcount, neg_delcount, pos_inscount, neg_inscount ;
+        int pos_mmcount, neg_mmcount ;
 
         map<string,string> bps ; 
 
@@ -92,6 +94,7 @@ class mpileup_line {
             refcountpos = refcountneg = 0 ; 
             pos_inscount = neg_inscount = 0;
             pos_delcount = neg_delcount = 0;
+            pos_mmcount = neg_mmcount = 0;
             bps = bp_map() ; 
         }
         
@@ -108,22 +111,33 @@ class mpileup_line {
                 case 'A':
                     acount_pos = refcountpos;
                     tcount_neg = refcountneg;
+                    pos_mmcount = ccount_pos + gcount_pos + tcount_pos;
+                    neg_mmcount = ccount_neg + gcount_neg + acount_neg;
                     break;
                 case 'C':
                     ccount_pos = refcountpos;
                     gcount_neg = refcountneg;
+                    pos_mmcount = acount_pos + gcount_pos + tcount_pos;
+                    neg_mmcount = acount_neg + ccount_neg + tcount_neg;
                     break;
                 case 'G':
                     gcount_pos = refcountpos;
                     ccount_neg = refcountneg;
+                    pos_mmcount = ccount_pos + acount_pos + tcount_pos;
+                    neg_mmcount = tcount_neg + gcount_neg + acount_neg; 
                     break;
                 case 'T':
                     tcount_pos = refcountpos;
                     acount_neg = refcountneg;
+                    pos_mmcount = ccount_pos + gcount_pos + acount_pos;
+                    neg_mmcount = ccount_neg + gcount_neg + tcount_neg; 
                     break;
+                //count all non-bases as mismatch for N
                 case 'N':
                     ncount_pos = refcountpos;
                     ncount_neg = refcountneg;
+                    pos_mmcount = tcount_pos + ccount_pos + gcount_pos + acount_pos;
+                    neg_mmcount = acount_neg + ccount_neg + gcount_neg + tcount_neg; 
                     break;
                 //Deal with -,R,Y,K,M,S,W etc
                 default:
@@ -143,6 +157,7 @@ class mpileup_line {
                 << "gcount" << "\t"
                 << "tcount" << "\t"
                 << "ncount" << "\t"
+                << "mmcount" << "\t"
                 << "delcount" << "\t"
                 << "inscount"
                 << endl;
@@ -159,6 +174,7 @@ class mpileup_line {
                 << gcount_pos << "\t"
                 << tcount_pos << "\t"
                 << ncount_pos << "\t"
+                << pos_mmcount << "\t"
                 << pos_delcount << "\t"
                 << pos_inscount
                 << endl;
@@ -175,6 +191,7 @@ class mpileup_line {
                 << gcount_neg << "\t"
                 << tcount_neg << "\t"
                 << ncount_neg << "\t"
+                << neg_mmcount << "\t"
                 << neg_delcount << "\t"
                 << neg_inscount
                 << endl;

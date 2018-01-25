@@ -19,21 +19,30 @@ samtools mpileup \
   -f ref.fa \
   -l regions.bed \
   alignments.bam \
-  | mpileupToReadCounts -
+  | mpileupToReadCounts
+
+## only report positions with depth >= 5 reads
+samtools mpileup \
+  -f ref.fa \
+  -l regions.bed \
+  alignments.bam \
+  | mpileupToReadCounts -d 5
 ```
 
 ## Example output
 ```
-chr     pos     strand  depth   ref_base        refcount        acount  ccount  gcount  tcount  ncount  delcount        inscount
-chr1    1393522 +       1       G       1       0       0       1       0       0       0       0
-chr1    1393523 +       1       T       1       0       0       0       1       0       0       0
-chr1    1393524 +       1       G       1       0       0       1       0       0       0       0
-chr1    1393525 +       1       G       1       0       0       1       0       0       0       0
-chr1    1393526 +       1       G       1       0       0       1       0       0       0       0
-chr1    1393527 +       1       T       1       0       0       0       1       0       0       0
-chr1    1393528 +       1       G       1       0       0       1       0       0       0       0
-chr1    1393529 +       1       T       1       0       0       0       1       0       0       0
-chr1    1393530 +       1       C       1       0       1       0       0       0       0       0
-chr1    1393531 +       1       C       1       0       1       0       0       0       0       0
-chr1    1393532 +       1       A       1       1       0       0       0       0       0       0
+chr     pos     strand  depth   ref_base        refcount        acount  ccount  gcount  tcount  ncount  mmcount delcount        inscount
+chr1    10021   -       359     T       355     0       0       4       355     0       4       0       0
+chr1    10022   +       179     C       179     0       179     0       0       0       0       0       0
+chr1    10022   -       413     G       408     5       0       408     0       0       5       0       0
+chr1    10023   +       188     C       188     0       188     0       0       0       0       0       0
+chr1    10023   -       418     G       418     0       0       418     0       0       0       0       0
+chr1    10024   +       194     C       193     1       193     0       0       0       1       0       0
+chr1    10024   -       421     G       420     1       0       420     0       0       1       0       0
+chr1    10025   +       195     T       194     1       0       0       194     0       1       0       0
+chr1    10025   -       424     A       424     424     0       0       0       0       0       0       0
+chr1    10026   +       195     A       195     195     0       0       0       0       0       0       0
+chr1    10026   -       403     T       403     0       0       0       403     0       0       0       0
+chr1    10027   +       195     A       194     194     0       1       0       0       1       0       0
+chr1    10027   -       403     T       401     0       0       2       401     0       2       0       0
 ```
