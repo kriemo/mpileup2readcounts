@@ -226,28 +226,28 @@ void parse_bases_to_readcounts(mpileup_line& ml1,
                 break;
             
             case 'a':
-                ml1.acount_neg += 1;
+                ml1.tcount_neg += 1;
                 break;
             case 'A':
                 ml1.acount_pos += 1;
                 break;
 
             case 'c':
-                ml1.ccount_neg += 1;
+                ml1.gcount_neg += 1;
                 break;
             case 'C':
                 ml1.ccount_pos += 1;
                 break;
 
             case 'g':
-                ml1.gcount_neg += 1;
+                ml1.ccount_neg += 1;
                 break;
             case 'G':
                 ml1.gcount_pos += 1;
                 break;
 
             case 't':
-                ml1.tcount_neg += 1;
+                ml1.acount_neg += 1;
                 break;
             case 'T':
                 ml1.tcount_pos += 1;
@@ -323,13 +323,141 @@ void parse_bases_to_readcounts(mpileup_line& ml1,
     ml1.set_depth();
 }
 
+// Parse the pileup string, keep indel counts to pass to next line
+// invert the strandedness, useful when strand-specific rev-comp are analyzed
+void parse_bases_to_readcounts_reversed(mpileup_line& ml1, 
+                               int& pos_previous_dels,
+                               int& neg_previous_dels,
+                               int& pos_previous_ins,
+                               int& neg_previous_ins) {
+  
+  ml1.neg_delcount = neg_previous_dels ;
+  ml1.pos_delcount = pos_previous_dels ;
+  ml1.neg_inscount = neg_previous_ins ;
+  ml1.pos_inscount = pos_previous_ins ;
+  
+  pos_previous_dels = neg_previous_dels = pos_previous_ins = neg_previous_ins = 0;
+  
+  for(std::string::size_type i = 0; i < ml1.bases.length(); i++) {
+    char base = ml1.bases[i];
+    string indelsize_string;
+    int indelsize_int = 0;
+    switch(base) {
+    //Match to reference
+    case '.':
+      ml1.refcountneg += 1;
+      break;
+    case ',':
+      ml1.refcountpos += 1;
+      break;
+    
+    case 'a':
+      ml1.acount_pos += 1;
+      break;
+    case 'A':
+      ml1.tcount_neg += 1;
+      break;
+      
+    case 'c':
+      ml1.gcount_pos += 1;
+      break;
+    case 'C':
+      ml1.gcount_neg += 1;
+      break;
+      
+    case 'g':
+      ml1.ccount_pos += 1;
+      break;
+    case 'G':
+      ml1.ccount_neg += 1;
+      break;
+      
+    case 't':
+      ml1.acount_pos += 1;
+      break;
+    case 'T':
+      ml1.acount_neg += 1;
+      break;
+      
+    case 'n':
+      ml1.ncount_pos += 1;
+      break;
+    case 'N':
+      ml1.ncount_neg += 1;
+      break;
+      
+      //Reference skips
+    case '<':
+    case '>':
+      break;
+      //This base is deleted
+    case '*':
+      break;
+      
+      //Insertion 
+    case '+': 
+      i++; // advance past + or -
+      while(ml1.bases[i] >= 48 && // A char type of 0 is typecast to 48 as int
+            ml1.bases[i] <= 57) { // a char type of 9 is typecase to 57 as int
+        indelsize_string = indelsize_string + ml1.bases[i];
+        i = i+1;
+      }
+      
+      // check for upper or lower (upper = + strand)
+      if (isupper(ml1.bases[i])){
+        neg_previous_ins += 1 ;
+      } else {
+        pos_previous_ins += 1 ;
+      }
+      
+      indelsize_int = str_to_num(indelsize_string);
+      i += indelsize_int - 1;
+      break;
+      
+      //Deletion
+    case '-':
+      i++; // advance past + or -
+      while(ml1.bases[i] >= 48 && // A char type of 0 is typecast to 48 as int
+            ml1.bases[i] <= 57) { // a char type of 9 is typecase to 57 as int
+        indelsize_string = indelsize_string + ml1.bases[i];
+        i = i+1;
+      }
+      
+      // check for upper or lower (upper = + strand)
+      // invert for reporting
+      if (isupper(ml1.bases[i])){
+        neg_previous_dels += 1 ;
+      } else {
+        pos_previous_dels += 1 ;
+      }
+      
+      indelsize_int = str_to_num(indelsize_string);
+      i += indelsize_int - 1;
+      break;
+      //End of read segment
+    case '$':
+      break;
+      //Beginning of read segment
+    case '^':
+      i = i + 1;//Skip quality
+      break;
+    default:
+      throw runtime_error("Unknown ref base: " + to_string(base));
+    }
+  }
+  
+  ml1.set_ref_nuc_count();
+  ml1.set_depth();
+}
+
 //Split the line into the required fields and parse
 void process_mpileup_line(std::string line, 
                          int min_depth,
                          int& pos_previous_dels,
                          int& neg_previous_dels,
                          int& pos_previous_ins,
-                         int& neg_previous_ins) {
+                         int& neg_previous_ins,
+                         bool reversed) {
     stringstream ss(line);
     mpileup_line ml1;
     string pos, depth;
@@ -350,11 +478,19 @@ void process_mpileup_line(std::string line,
     getline(ss, ml1.bases, '\t');
     getline(ss, ml1.qual, '\t');
     
-    parse_bases_to_readcounts(ml1, 
-                              pos_previous_dels,
-                              neg_previous_dels,
-                              pos_previous_ins,
-                              neg_previous_ins);
+    if (!reversed){
+      parse_bases_to_readcounts(ml1, 
+                                pos_previous_dels,
+                                neg_previous_dels,
+                                pos_previous_ins,
+                                neg_previous_ins);
+    } else {
+      parse_bases_to_readcounts_reversed(ml1, 
+                                pos_previous_dels,
+                                neg_previous_dels,
+                                pos_previous_ins,
+                                neg_previous_ins);
+    }
    
     if(ml1.pos_depth >= min_depth) ml1.print_pos();
     if(ml1.neg_depth >= min_depth) ml1.print_neg();
@@ -365,24 +501,39 @@ int main(int argc, char* argv[]) {
     
     // only report regions with >= 1 reads by default
     int min_depth = 1 ;
+    // don't report as opposite strand by default
+    bool reversed = false ;
 
     if (argc > 1) {
         std::string arg = argv[1];
         if ((arg == "-h") || (arg == "--help")) {
-                usage();
-                return 1;
+            usage();
+            return 1;
         } else if (arg == "-d") {
-            if (argc == 3) { 
+            if (argc > 2) { 
                 min_depth = stoi(argv[2]); 
             } else {
                 cerr << "-d requires one argument" << endl;
                 return 1;
             }
+        } else if (arg == "-r"){
+            reversed = true ;
         } else {
-            usage() ;
-            return 1 ;
+            usage();
+            return 1;
         }
-    }
+        
+        if (argc > 3){
+            std::string arg = argv[3];
+            if (arg == "-r"){
+              reversed = true ;
+            } else {
+              usage();
+              return 1;
+            }
+        }
+    } 
+    
     
     string line;
     mpileup_line::print_header();
@@ -399,7 +550,8 @@ int main(int argc, char* argv[]) {
                                  pos_previous_dels,
                                  neg_previous_dels,
                                  pos_previous_ins,
-                                 neg_previous_ins);
+                                 neg_previous_ins,
+                                 reversed);
         } catch(const std::runtime_error& e) {
             cerr << e.what() << endl;
             cerr << "\nError parsing line " << line;
